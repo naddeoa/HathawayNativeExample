@@ -1,0 +1,33 @@
+{
+  "name": "ReelmNativeDemo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "tsc": "tsc",
+    "build": "npm run tsc --",
+    "test": "jest",
+    "watch": "npm run build -- -w",
+    "start:android": "npm run build; concurrently -r 'npm start' 'npm run watch' 'react-native run-android'"
+  },
+  "dependencies": {
+    "immutable": "^3.8.2",
+    "react": "^16.0.0",
+    "react-native": "^0.51.0"
+  },
+  "devDependencies": {
+    "@types/immutable": "^3.8.7",
+    "@types/react": "^16.0.33",
+    "babel-jest": "22.0.4",
+    "babel-preset-react-native": "4.0.0",
+    "concurrently": "^3.5.1",
+    "jest": "22.0.4",
+    "react-test-renderer": "16.0.0",
+    "rimraf": "^2.6.2",
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
