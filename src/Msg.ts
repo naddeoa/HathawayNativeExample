@@ -1,4 +1,5 @@
-import { UserProfileModel, RepoModel } from './Model'
+import { UserProfileModel, RepoModel, Orientation } from './Model'
+import { Route } from './Routes';
 
 export interface OnUsernameSearchChanged {
     type: 'OnUsernameSearchChanged',
@@ -6,7 +7,8 @@ export interface OnUsernameSearchChanged {
 }
 
 export interface OnUsernameSearch {
-    type: 'OnUsernameSearch'
+    type: 'OnUsernameSearch',
+    pushInHistory: boolean
 }
 
 export interface FetchReposForUser {
@@ -19,10 +21,22 @@ export interface FetchLanguagesForRepo {
     repo: RepoModel
 }
 
+export interface Navigate {
+    type: 'Navigate',
+    route: Route
+}
+
+export interface OrientationChanged {
+    type: 'OrientationChanged',
+    orientation: Orientation
+}
+
 export type Msg =
     OnUsernameSearch
     | OnUsernameSearchChanged
     | FetchReposForUser
     | FetchLanguagesForRepo
+    | Navigate
+    | OrientationChanged
 
 export default Msg;

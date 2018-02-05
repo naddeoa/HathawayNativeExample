@@ -11,6 +11,7 @@
     "start:android": "npm run build; concurrently -r 'npm start' 'npm run watch' 'react-native run-android'"
   },
   "dependencies": {
+    "hathaway-native": "0.0.2",
     "immutable": "^3.8.2",
     "react": "^16.0.0",
     "react-native": "^0.51.0"

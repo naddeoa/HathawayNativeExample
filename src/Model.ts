@@ -1,6 +1,13 @@
-import { createModel, ImmutableModel } from 'reelm-core';
+import { createModel, ImmutableModel, Cmd, NoOp, Dispatch } from 'hathaway-native';
+import {Dimensions} from 'react-native';
 import { Map, List } from 'immutable';
 import { UserProfile, Repo, ProgrammingLanguages } from './GithubApi';
+import { parseRoute } from './Routes';
+import Msg from './Msg';
+
+export function modelSet(key: keyof MyModel, value: MyModel[keyof MyModel], model: ImmutableModel<MyModel>) : ImmutableModel<MyModel>{
+    return model.set(key, value);
+}
 
 export function addUserProfile(username: string, profile: UserProfile, model: ImmutableModel<MyModel>): ImmutableModel<MyModel> {
     return model.set('userProfiles', model.get('userProfiles').set(username, createModel(profile)));
@@ -16,18 +23,23 @@ export function lookupUserProfile(username: string, model: ImmutableModel<MyMode
     return profile;
 }
 
-export function currentlyFetchingRepos(profile: UserProfileModel, model: ImmutableModel<MyModel>): boolean {
-    const fetching = model.get('fetchingReposForProfile').get(profile.get('id'));
-    if (!fetching) {
-        return false;
+export type Username = string;
+export function currentlyFetching(thing: UserProfileModel | Username, model: ImmutableModel<MyModel>): boolean {
+    if (typeof thing === 'string') {
+        return model.get('requestHappeningFor').get(thing) === true;
     }
 
-    return fetching;
+    return model.get('requestHappeningFor').get(thing.get('id')) === true;
 }
 
-export function setCurrentlyFetchingRepos(profile: UserProfileModel, fetching: boolean, model: ImmutableModel<MyModel>): ImmutableModel<MyModel> {
-    const fetchingStatus = model.get('fetchingReposForProfile').set(profile.get('id'), fetching);
-    return model.set('fetchingReposForProfile', fetchingStatus);
+export function setCurrentlyFetching(thing: UserProfileModel | Username, fetching: boolean, model: ImmutableModel<MyModel>): ImmutableModel<MyModel> {
+    if (typeof thing === 'string') {
+        const fetchingStatus = model.get('requestHappeningFor').set(thing, fetching);
+        return model.set('requestHappeningFor', fetchingStatus);
+    }
+
+    const fetchingStatus = model.get('requestHappeningFor').set(thing.get('id'), fetching);
+    return model.set('requestHappeningFor', fetchingStatus);
 }
 
 export function addRepos(profile: UserProfileModel, repos: Repo[], model: ImmutableModel<MyModel>): ImmutableModel<MyModel> {
@@ -55,6 +67,11 @@ export function lookupProgrammingLanguagesModel(repo: RepoModel, model: Immutabl
     return model.get('programmingLanguages').get(repo.get('id')) || null;
 }
 
+export function getOrientation() : Orientation {
+    const {width, height} = Dimensions.get('window');
+    return width > height ? 'LANDSCAPE' : 'PORTRAIT';
+}
+
 export type UserProfileModel = ImmutableModel<UserProfile>;
 
 export type RepoModel = ImmutableModel<Repo>;
@@ -63,24 +80,50 @@ export type ReposModel = List<RepoModel>;
 
 export type ProgrammingLanguagesModel = Map<string, number>;
 
+export type Orientation = 'PORTRAIT' | 'LANDSCAPE';
+
 export type MyModel = {
     usernameSearchText: string,
     showProfile: string | null,
     userProfiles: Map<string, UserProfileModel>,
     repos: Map<string, ReposModel>,
-    fetchingReposForProfile: Map<string, boolean>,
-    programmingLanguages: Map<string, ProgrammingLanguagesModel>
+    requestHappeningFor: Map<string, boolean>,
+    programmingLanguages: Map<string, ProgrammingLanguagesModel>,
+    orientation: Orientation
 };
 
-const defaultValues = {
-    usernameSearchText: '',
-    showProfile: null,
+
+const initialRoute = parseRoute();
+
+const defaultValues: MyModel = {
+    usernameSearchText: initialRoute.type === 'UserRoute' ? initialRoute.user : '',
+    showProfile: initialRoute.type === 'UserRoute' ? initialRoute.user : null,
     userProfiles: Map<string, UserProfileModel>(),
     repos: Map<string, ReposModel>(),
-    fetchingReposForProfile: Map<string, boolean>(),
-    programmingLanguages: Map<string, Map<string, number>>()
+    requestHappeningFor: Map<string, boolean>(),
+    programmingLanguages: Map<string, Map<string, number>>(),
+    orientation: getOrientation()
 };
 
 export type Model = ImmutableModel<MyModel>;
 
-export const initialValue: Model = createModel(defaultValues);
+const initialValue: Model = createModel(defaultValues);
+
+function getInitialCmd(): Cmd<MyModel, Msg> {
+    if (defaultValues.showProfile === null) {
+        return NoOp;
+    }
+
+    const cmd: Cmd<MyModel, Msg> = {
+        type: 'AsyncCmd',
+        promise: Promise.resolve(),
+        successFunction: (dispatch: Dispatch<Msg>, model: Model, _result: null) => {
+            dispatch({ type: 'OnUsernameSearch', pushInHistory: true });
+            return [model, NoOp];
+        }
+    };
+
+    return cmd;
+}
+
+export const init: [ImmutableModel<MyModel>, Cmd<MyModel, Msg>] = [initialValue, getInitialCmd()]

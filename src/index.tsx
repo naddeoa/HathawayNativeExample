@@ -1,51 +1,26 @@
-import React, { Component } from 'react';
-import { AppRegistry, Platform, StyleSheet, Text, View } from 'react-native';
-// import {start} from 'reelm-native';
+import { start, Program, Dispatch } from 'hathaway-native';
+import { Dimensions } from 'react-native';
+import { init, MyModel, getOrientation } from './Model';
+import Msg from './Msg';
+import update from './Update';
+import View from './View';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'TYPESCRIPT Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+const orientationChanged = (dispatch: Dispatch<Msg>) => () => {
+  dispatch({ type: 'OrientationChanged', orientation: getOrientation() });
 
-
-class App extends Component<{}> {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
-      </View>
-    );
-  }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+const program: Program<MyModel, Msg> = {
+  init,
+  update,
+  view: View,
+  dev: true,
+  setupCallbacks: function (dispatch: Dispatch<Msg>) {
+    Dimensions.addEventListener('change', orientationChanged(dispatch));
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-});
+  teardownCallbacks: function (dispatch: Dispatch<Msg>) {
+    Dimensions.removeEventListener('change', orientationChanged(dispatch));
+  }
+};
 
-
-AppRegistry.registerComponent('ReelmNativeDemo', () => App);
+start("ReelmNativeDemo", program);

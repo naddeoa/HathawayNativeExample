@@ -1,13 +1,11 @@
+import { View, TextInput, Button } from 'react-native';
 import * as React from 'react';
-import { View, TextInput } from 'react-native';
-import { ViewProps, Dispatch } from 'reelm-core';
+import { ViewProps, Dispatch } from 'hathaway-native';
 import { MyModel } from '../Model';
 import Msg from '../Msg';
 
-const onEnter = (dispatch: Dispatch<Msg>) => (event: { nativeEvent: { key: string } }) => {
-    if (event.nativeEvent.key === 'Enter') {
-        dispatch({ type: 'OnUsernameSearch' })
-    }
+const onSearch = (dispatch: Dispatch<Msg>) => () => {
+    dispatch({ type: 'OnUsernameSearch', pushInHistory: false })
 }
 
 const onChange = (dispatch: Dispatch<Msg>) => (text: string) => {
@@ -16,8 +14,9 @@ const onChange = (dispatch: Dispatch<Msg>) => (text: string) => {
 
 const SearchBox: React.SFC<ViewProps<MyModel, Msg, null>> = ({ model, dispatch }: ViewProps<MyModel, Msg, null>) => {
     return (
-        <View>
-            <TextInput placeholder="Search for a github user" onKeyPress={onEnter(dispatch)} onChange={onChange(dispatch)} value={model.get('usernameSearchText')} />
+        <View style={{flexDirection: 'row'}}>
+            <TextInput style={{flex: 1}} editable={true} placeholder="Search for a github user" onChangeText={onChange(dispatch)} value={model.get('usernameSearchText')} />
+            <Button style={{width: "10%"}} title="Search" onPress={onSearch(dispatch)} />
         </View>
     );
 }
