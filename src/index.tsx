@@ -23,4 +23,4 @@ const program: Program<MyModel, Msg> = {
   }
 };
 
-start("ReelmNativeDemo", program);
+start("GithubUserSearch", program);

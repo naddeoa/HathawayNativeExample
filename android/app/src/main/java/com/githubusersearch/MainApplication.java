@@ -1,4 +1,4 @@
-package com.reelmnativedemo;
+package com.githubusersearch;
 
 import android.app.Application;
 
